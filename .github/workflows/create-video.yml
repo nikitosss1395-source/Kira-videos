@@ -1,0 +1,38 @@
+name: 🎥 Створити відео для Кири
+
+on:
+  workflow_dispatch:
+    inputs:
+      framerate:
+        description: 'Кадрів за секунду (fps)'
+        required: true
+        default: '8'
+        type: string
+      output_name:
+        description: 'Назва відео'
+        required: false
+        default: 'kira-video'
+
+jobs:
+  create-video:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📅 Завантажити репозиторій
+        uses: actions/checkout@v4
+
+      - name: 🎬 Встановити FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
+      - name: 📁 Створити папку videos (якщо немає)
+        run: mkdir -p videos
+
+      - name: ✨ Зібрати відео з картинок
+        run: |
+          ffmpeg -framerate ${{ github.event.inputs.framerate }} \
+                 -pattern_type glob -i 'frames/*.png' \
+                 -c:v libx264 -pix_fmt yuv420p -crf 18 \
+                 videos/${{ github.event.inputs.output_name }}_$(date +%Y%m%d_%H%M%S).mp4
+
+      - name: 📊 Показати результат
+        run: ls -la videos/
